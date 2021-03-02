@@ -20,25 +20,23 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 import random
 import math
 import statistics
+import argparse
+from sys import exit
 
 def main():
-    import sys
-    # Is user stupid or/and in need of help?
-    if len(sys.argv) < 4 or sys.argv[1] == "-h":
-        help(sys.argv[0])
-        sys.exit(0)
     # Read argv
-    drop_name = sys.argv[1]
-    drop_chance = float(sys.argv[2]) / 100 # Convert % chance to [0, 1] chance
-    action = sys.argv[3]
-    run_count = int(sys.argv[4]) if len(sys.argv) > 4 else 100000
+    args = read_argv()
+    drop_name = args.drop_name
+    drop_chance = args.drop_chance / 100 # Convert % chance to [0, 1] chance
+    action = args.action
+    run_count = args.run_count
     # Short-circuit special cases
     if drop_chance <= 0.0: # Impossible drop, avoid infinite loop
         print(f"{drop_name} is unobtainable")
-        sys.exit(0)
+        exit(0)
     if drop_chance >= 1.0: # Guaranteed drop, no need for real calculation
         print(f"Your next {action} will get you {drop_name}. What are you waiting for?")
-        sys.exit(0)
+        exit(0)
 
 
     data = []
@@ -63,12 +61,13 @@ def grind(drop_chance):
         attempts += 1
     return attempts
 
-def help(filename):
-    print(f"Usage: {filename} [drop_name] [drop_chance] [action] [run_count]")
-    print("      drop_name: name of the thing you're looking for (e.g. Condition Overload)")
-    print("    drop_chance: % drop chance of the thing without the % sign (e.g. 0.0225)")
-    print("         action: what you'll do in-game to get the thing (e.g. Deimos Carnis/Jugulus/Leaping Thrasher/Saxum kill)")
-    print("      run_count: number of runs to simulate, defaults to 100000 if not entered")
+def read_argv():
+    parser = argparse.ArgumentParser(description="find out how much effort is needed to make RNGesus smile at you")
+    parser.add_argument("drop_chance", type=float, help="percent drop chance of the thing you're looking for without the percent sign (e.g. 0.0225)")
+    parser.add_argument("--drop_name", "-d", help="name of the thing you're looking for (e.g. Condition Overload) (default: \"Thing\")", default="Thing")
+    parser.add_argument("--action", "-a", help="what you'll do in-game to get the thing (e.g. Deimos Carnis/Jugulus/Leaping Thrasher/Saxum kill) (default: \"attempt\")", default="attempt")
+    parser.add_argument("--run_count", "-c", type=int, help="number of runs to simulate (default: 100 000)", default=100000)
+    return parser.parse_args()
 
 if __name__ == "__main__":
     main()
